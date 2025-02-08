@@ -10,32 +10,32 @@
 </head>
 <body>
     
-<main class='container'>
-    <div>
-        <canvas id="grafico"></canvas>
-    </div>
-    <script>
-        const ctx = document.getElementById('grafico');
+        <main class='container'>
+            <div>
+                <canvas id="grafico-mongo"></canvas>
+            </div>
+            <script>
+                const ctx = document.getElementById('grafico-mongo');
 
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['MySQL', 'Mongo'],
-                datasets: [{
-                    label: 'Tiempo de ejecución de query',
-                    data: [32, 246]
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                    beginAtZero: true
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Export', 'Drop', 'Import', 'Query'],
+                        datasets: [{
+                            label: 'Tareas de migración',
+                            data: [23, 299, 26, 299]
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                            beginAtZero: true
+                            }
+                        }
                     }
-                }
-            }
-        });
-    </script>
-</main>
-
+                });
+            </script>
+        </main>
+        
 </body>
 </html>

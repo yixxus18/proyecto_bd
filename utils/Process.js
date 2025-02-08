@@ -56,8 +56,59 @@ class Process {
         this.options = value;
     }
 
-    Execute() {
+    async ExecuteAsync(forceTimer = false) {
+        return new Promise((resolve, reject) => {
+            this.process = spawn(this.executable, this.process_arguments,  this.options);
+            if(forceTimer) {
+                this.start_time = Date.now();
+            }
+
+            this.process.stdout.on("data", (chunk) => {
+                this.outs += (chunk.toString());
+            });
+            
+            this.process.stdout.on("error", (err) => {
+                const text = err.toString();
+                this.errors += text;
+                this.outs += text;
+            });
+            
+            this.process.stdout.on("close", (code) => {
+                this.exit_code = code.toString();
+                this.outs += code.toString();
+                this.end_time = Date.now();
+                resolve(true);
+            });
+            
+            this.process.on("error", (err) => {
+                const text = err.toString();
+                this.errors += text;
+                this.outs += text;
+            });
+            
+            // this.process.stdin.on("finish", () => {
+                
+            // });
+            
+            this.process.stderr.on("data", (chunk) => {
+                const text = chunk.toString();
+                this.errors += text;
+                this.outs += text;
+            });
+            
+            this.process.stderr.on("error", (error) => {
+                const text = error.toString();
+                this.errors += text;
+                this.outs += text;
+            });
+        });
+    }
+
+    Execute(forceTimer = false) {
         this.process = spawn(this.executable, this.process_arguments,  this.options);
+        if(forceTimer) {
+            this.start_time = Date.now();
+        }
 
         this.process.stdout.on("data", (chunk) => {
             this.outs += (chunk.toString());
@@ -72,6 +123,7 @@ class Process {
         this.process.stdout.on("close", (code) => {
             this.exit_code = code.toString();
             this.outs += code.toString();
+            this.end_time = Date.now();
             this.finish();
         });
         
@@ -81,9 +133,9 @@ class Process {
             this.outs += text;
         });
         
-        this.process.stdin.on("finish", () => {
-            this.end_time = Date.now();
-        });
+        // this.process.stdin.on("finish", () => {
+            
+        // });
         
         this.process.stderr.on("data", (chunk) => {
             const text = chunk.toString();
