@@ -6,6 +6,7 @@ const metricas = {
 };
 
 (async () =>{
+//----------------------------------Mongo----------------------------//
 //mongoexport --db "Alumnos" --collection "Alumno" --out C:\tmp\export.json
 const mongoexport = new Process("mongoexport");
 mongoexport.ProcessArguments.push("--db");
@@ -22,7 +23,6 @@ metricas.mongo.exportTime = mongoexport.EndTime - mongoexport.StartTime;
  * use Alumnos;
  * db.Alumno.drop();
  */
-
 const drop = new Process("mongosh");
 drop.Execute();
 drop.Write("use Alumnos;");
@@ -56,9 +56,67 @@ mongo.Write("\n");
 mongo.Write("db.Alumnos.find();");
 mongo.End();
 await mongo.Finish();
-console.log(`[query] Tiempo de ejecución: ${mongo.EndTime - mongo.StartTime} ms`);
+console.log(`[mongo - query] Tiempo de ejecución: ${mongo.EndTime - mongo.StartTime} ms`);
 metricas.mongo.queryTime = mongo.EndTime - mongo.StartTime;
 
+//----------------------------------MySQL----------------------------//
+//mysqldump -uroot --password=utt Alumnos --result-file=alumnos.sql
+const mysqldump = new Process("mysqldump");
+mysqldump.ProcessArguments.push("-uroot");
+mysqldump.ProcessArguments.push("--password=utt");
+mysqldump.ProcessArguments.push("Alumnos");
+mysqldump.ProcessArguments.push("--result-file=alumnos.sql");
+await mysqldump.ExecuteAsync(true);
+console.log(`[mysqldump] Tiempo de ejecución: ${mysqldump.EndTime - mysqldump.StartTime} ms`);
+metricas.mysql.exportTime = mysqldump.EndTime - mysqldump.StartTime;
+
+/**
+ * mysql -uroot --password=utt
+ * drop database Alumnos;
+ * create database Alumnos;
+ */
+const dropDatabase = new Process("mysql");
+dropDatabase.ProcessArguments.push("-uroot");
+dropDatabase.ProcessArguments.push("--password=utt");
+dropDatabase.Execute();
+dropDatabase.Write("drop database Alumnos;");
+dropDatabase.Write("create database Alumnos;");
+dropDatabase.End();
+await dropDatabase.Finish();
+console.log(`[mysql - drop] Tiempo de ejecución: ${dropDatabase.EndTime - dropDatabase.StartTime} ms`);
+metricas.mysql.dropTime = dropDatabase.EndTime - dropDatabase.StartTime;
+
+//mysql -uroot --password=utt Alumnos < alumnos.sql
+const importMySQL = new Process("mysql", {
+    shell: true
+});
+importMySQL.ProcessArguments.push("-uroot");
+importMySQL.ProcessArguments.push("--password=utt");
+importMySQL.ProcessArguments.push("Alumnos");
+importMySQL.ProcessArguments.push("<alumnos.sql");
+await importMySQL.ExecuteAsync(true);
+console.log(`[mysql - import] Tiempo de ejecución: ${importMySQL.EndTime - importMySQL.StartTime} ms`);
+metricas.mysql.importTime = importMySQL.EndTime - importMySQL.StartTime;
+
+/**
+ * mysql -uroot --password=utt
+ * use Alumnos;
+ * SELECT * FROM Alumno;
+ */
+const selectMySQL = new Process("mysql");
+selectMySQL.ProcessArguments.push("-uroot");
+selectMySQL.ProcessArguments.push("--password=utt");
+selectMySQL.Execute();
+selectMySQL.Write("use Alumnos;");
+selectMySQL.Write("SELECT * FROM Alumno;");
+selectMySQL.End();
+await selectMySQL.Finish();
+console.log(`[mysql - query] Tiempo de ejecución: ${selectMySQL.EndTime - selectMySQL.StartTime} ms`);
+metricas.mysql.queryTime = selectMySQL.EndTime - selectMySQL.StartTime;
+
+console.log(metricas);
+
+/*
 const reporte = new GeneradorReporte();
 const grafico = {
     type: 'bar',
@@ -96,4 +154,5 @@ reporte.Body =
 </main>
 `
 reporte.Generar();
+//*/
 })();
