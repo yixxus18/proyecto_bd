@@ -73,7 +73,14 @@ class Process {
                 this.outs += text;
             });
             
-            this.process.stdout.on("close", (code) => {
+            /*this.process.stdout.on("close", (code) => {
+                this.exit_code = code.toString();
+                this.outs += code.toString();
+                this.end_time = Date.now();
+                resolve(true);
+            });*/
+
+            this.process.on('close', (code) => {
                 this.exit_code = code.toString();
                 this.outs += code.toString();
                 this.end_time = Date.now();
@@ -120,7 +127,14 @@ class Process {
             this.outs += text;
         });
         
-        this.process.stdout.on("close", (code) => {
+        /*this.process.stdout.on("close", (code) => {
+            this.exit_code = code.toString();
+            this.outs += code.toString();
+            this.end_time = Date.now();
+            this.finish();
+        });*/
+
+        this.process.on('close', (code) => {
             this.exit_code = code.toString();
             this.outs += code.toString();
             this.end_time = Date.now();
