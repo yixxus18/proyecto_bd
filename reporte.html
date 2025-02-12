@@ -10,32 +10,32 @@
 </head>
 <body>
     
-        <main class='container'>
-            <div>
-                <canvas id="grafico-mongo"></canvas>
-            </div>
-            <script>
-                const ctx = document.getElementById('grafico-mongo');
+<main class='container'>
+    <div>
+        <canvas id="grafico-mongo"></canvas>
+    </div>
+    <script>
+        const ctx = document.getElementById('grafico-mongo');
 
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Export', 'Drop', 'Import', 'Query'],
-                        datasets: [{
-                            label: 'Tareas de migración',
-                            data: [23, 299, 26, 299]
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                            beginAtZero: true
-                            }
-                        }
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Export', 'Drop', 'Import', 'Query'],
+                datasets: [{
+                    label: 'Tareas de migración',
+                    data: [22, 349, 28, 336]
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                    beginAtZero: true
                     }
-                });
-            </script>
-        </main>
-        
+                }
+            }
+        });
+    </script>
+</main>
+
 </body>
 </html>
