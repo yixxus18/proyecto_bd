@@ -1,3 +1,4 @@
-export.json
-reporte.html
 *.sql
+*.bat
+*.html
+*.json

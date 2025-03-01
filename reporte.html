@@ -1,41 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <title>Rendimiento</title>
-</head>
-<body>
-    
-<main class='container'>
-    <div>
-        <canvas id="grafico-mongo"></canvas>
-    </div>
-    <script>
-        const ctx = document.getElementById('grafico-mongo');
 
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Export', 'Drop', 'Import', 'Query'],
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <title>Métricas de BDD</title>
+    </head>
+    <body>
+        <div>
+            <canvas id="grafico-mysql"></canvas>
+            <hr>
+            <canvas id="grafico-mongo"></canvas>
+
+        </div>
+
+        <script>
+            const mysql = document.getElementById('grafico-mysql');
+            const mongo = document.getElementById('grafico-mongo');
+
+            new Chart(mysql, {
+                type: 'bar',
+                data: {
+                labels: ['Export', 'Drop', 'Import'],
                 datasets: [{
-                    label: 'Tareas de migración',
-                    data: [22, 349, 28, 336]
+                    label: 'Pruebas de rendimiento de MySQL',
+                    data: [5389, 51, 8649],
+                    borderWidth: 1
                 }]
-            },
-            options: {
-                scales: {
-                    y: {
-                    beginAtZero: true
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
-    </script>
-</main>
+            });
 
-</body>
-</html>
+            new Chart(mongo, {
+                type: 'bar',
+                data: {
+                labels: ['Export', 'Drop', 'Import'],
+                datasets: [{
+                    label: 'Pruebas de rendimiento de Mongo',
+                    data: [32, 1515, 31],
+                    borderWidth: 1
+                }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        </script>
+    </body>
+    </html>
+    
