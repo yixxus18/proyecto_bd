@@ -1,5 +1,5 @@
 const { spawn } = require('node:child_process');
-process.env.path += ";C:\\MongoDB\\bin";
+process.env.path += ";C:\\mongodb\\bin";
 process.env.path += ";C:\\MySQL\\bin";
 
 class Process {
@@ -56,7 +56,10 @@ class Process {
 
     async ExecuteAsync(forceTimer = false) {
         return new Promise((resolve, reject) => {
-            this.process = spawn(this.executable, this.process_arguments,  this.options);
+            this.process = spawn(this.executable, this.process_arguments, {
+                ...this.options,
+                shell: true // <-- Esto es crítico
+            });
             if(forceTimer) {
                 this.start_time = Date.now();
             }
@@ -85,10 +88,9 @@ class Process {
                 resolve(true);
             });
             
-            this.process.on("error", (err) => {
-                const text = err.toString();
-                this.errors += text;
-                this.outs += text;
+            this.process.on('error', (err) => {
+                this.errors += err.toString();
+                reject(err);
             });
             
             // this.process.stdin.on("finish", () => {
@@ -106,6 +108,17 @@ class Process {
                 this.errors += text;
                 this.outs += text;
             });
+
+            this.process.on('close', (code) => {
+                this.exit_code = code.toString();
+                this.outs += code.toString();
+                this.end_time = Date.now();
+                resolve(true);
+            });
+
+            if(forceTimer) {
+                this.start_time = Date.now();
+            }
         });
     }
 

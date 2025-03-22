@@ -116,7 +116,7 @@ metricas.mysql.queryTime = selectMySQL.EndTime - selectMySQL.StartTime;
 
 console.log(metricas);
 
-/*
+
 const reporte = new GeneradorReporte();
 const grafico = {
     type: 'bar',
@@ -154,5 +154,5 @@ reporte.Body =
 </main>
 `
 reporte.Generar();
-//*/
+
 })();
