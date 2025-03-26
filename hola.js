@@ -3,7 +3,6 @@ const GeneradorReporte = require("./generador");
 const fs = require('fs');
 const path = require('path');
 
-// Configuración
 const DB_NAME = 'biblioteca';
 const TMP_DIR = 'C:/tmp/';
 const NUM_LIBROS = 100000;
@@ -12,7 +11,6 @@ const NUM_STRESS = 3500;
 const NUM_CSVS = 100;
 const NUM_MONGO_LIBROS = 1000000;
 
-// Helpers
 function randomNumber(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
 }
@@ -22,54 +20,51 @@ function randomText(length) {
 }
 
 function randomISBN() {
-    return randomText(13); // ISBN-13
+    return randomText(13);
 }
 
 function randomYear() {
     return randomNumber(1900, 2023);
 }
 
-// Generadores de datos
 function generateLibrosCSV(rows, outputFile = null) {
     if (outputFile) {
-        // Si se proporciona un archivo, escribir directamente en él
         const writeStream = fs.createWriteStream(outputFile);
         for (let i = 0; i < rows; i++) {
             const row = [
                 i + 1,
                 randomISBN(),
                 randomText(randomNumber(10, 50)),
-                randomText(12), // licencia autor
-                randomText(10), // editorial
+                randomText(12), 
+                randomText(10), 
                 randomNumber(50, 1000),
                 randomYear(),
-                randomText(10), // género
-                'ES', // idioma
-                'PDF', // formato
-                randomText(100), // sinopsis
-                randomText(500) // contenido
+                randomText(10), 
+                'ES', 
+                'PDF', 
+                randomText(100), 
+                randomText(500) 
             ].join(',') + '\n';
             writeStream.write(row);
         }
         writeStream.end();
         return new Promise((resolve) => writeStream.on('finish', resolve));
     } else {
-        // Si no hay archivo, retornar como string (para cantidades pequeñas)
         let csv = '';
         for (let i = 0; i < rows; i++) {
             csv += [
                 i + 1,
                 randomISBN(),
                 randomText(randomNumber(10, 50)),
-                randomText(12), // licencia autor
-                randomText(10), // editorial
+                randomText(12), 
+                randomText(10), 
                 randomNumber(50, 1000),
                 randomYear(),
-                randomText(10), // género
-                'ES', // idioma
-                'PDF', // formato
-                randomText(100), // sinopsis
-                randomText(500) // contenido
+                randomText(10), 
+                'ES', 
+                'PDF', 
+                randomText(100), 
+                randomText(500) 
             ].join(',') + '\n';
         }
         return csv;
@@ -81,23 +76,23 @@ function generateAutoresCSV(rows) {
     for (let i = 0; i < rows; i++) {
         csv += [
             i + 1,
-            randomText(12), // licencia
-            randomText(10), // nombre
-            randomText(10), // apellido
-            randomText(10), // segundo apellido
+            randomText(12), 
+            randomText(10), 
+            randomText(10), 
+            randomText(10),
             randomYear()
         ].join(',') + '\n';
     }
     return csv;
 }
 
-// MySQL executor
 async function executeMySQLCommand(command) {
-    const process = new Process("mysql");
+    const process = new Process("C:\\MySQL\\bin\\mysql");
     process.ProcessArguments.push("-uroot");
     process.ProcessArguments.push("--password=utt");
     process.ProcessArguments.push("--local-infile=1");
     process.ProcessArguments.push("--enable-local-infile");
+    process.ProcessArguments.push("--init-command=SET GLOBAL local_infile=1");
     process.Execute();
     process.Write(command);
     process.End();
@@ -105,9 +100,8 @@ async function executeMySQLCommand(command) {
     return process.EndTime - process.StartTime;
 }
 
-// MongoDB executor
 async function executeMongoCommand(command, collection) {
-    const process = new Process("mongoimport");
+    const process = new Process("C:\\mongodb\\bin\\mongoimport");
     process.ProcessArguments.push(...[
         `--uri=mongodb://localhost:27017/${DB_NAME}`,
         `--collection=${collection}`,
@@ -119,9 +113,8 @@ async function executeMongoCommand(command, collection) {
     return process.EndTime - process.StartTime;
 }
 
-// Nuevo: MongoDB export executor
 async function executeMongoExport(collection, fields, outputFile) {
-    const process = new Process("mongoexport");
+    const process = new Process("C:\\mongodb\\bin\\mongoexport");
     process.ProcessArguments.push(...[
         `--uri=mongodb://localhost:27017/${DB_NAME}`,
         `--collection=${collection}`,
@@ -158,7 +151,6 @@ async function main() {
     };
 
     try {
-        // Crear estructura de base de datos
         console.log('Creando estructura de base de datos...');
         const startEstructura = Date.now();
         await executeMySQLCommand(`CREATE DATABASE IF NOT EXISTS ${DB_NAME};`);
@@ -192,7 +184,6 @@ async function main() {
         console.log('Tablas creadas.');
         metricas.crear_estructura = Date.now() - startEstructura;
 
-        // Crear usuarios
         const startUsuarios = Date.now();
         await executeMySQLCommand(`
             CREATE USER 'A'@'localhost' IDENTIFIED BY 'passwordA';
@@ -205,33 +196,50 @@ async function main() {
         `);
         metricas.crear_usuarios = Date.now() - startUsuarios;
 
-        // Generar e insertar 100k libros
         const csv100k = path.join(TMP_DIR, 'libros_100k.csv');
         let start = Date.now();
-        fs.writeFileSync(csv100k, generateLibrosCSV(NUM_LIBROS));
+        require('fs').writeFileSync(csv100k, generateLibrosCSV(NUM_LIBROS));
         metricas.generar_100k_libros = Date.now() - start;
 
         start = Date.now();
         await executeMySQLCommand(`
             USE ${DB_NAME};
-            LOAD DATA LOCAL INFILE '${csv100k}'
+            SET GLOBAL local_infile=1;
+            LOAD DATA LOCAL INFILE '${csv100k.replace(/\\/g, '/')}'
             INTO TABLE Libro
             FIELDS TERMINATED BY ','
-            LINES TERMINATED BY '\n';
+            LINES TERMINATED BY '\\n';
         `);
         metricas.insertar_100k_libros = Date.now() - start;
 
-        // Insertar 3500 libros (estrés)
         start = Date.now();
-        const stressData = generateLibrosCSV(NUM_STRESS);
         await executeMySQLCommand(`
             USE ${DB_NAME};
-            INSERT INTO Libro VALUES ${stressData.split('\n').map(row => 
-                `(${row})`).join(',')};
+            WITH RECURSIVE numbers AS (
+                SELECT 1 AS n
+                UNION ALL
+                SELECT n + 1 FROM numbers WHERE n < ${NUM_STRESS}
+            )
+            INSERT INTO Libro (
+                id, ISBN, title, autor_license, editorial, pages, year, genre, language, format, sinopsis, content
+            )
+            SELECT 
+                n,
+                SUBSTRING(MD5(RAND()),1,13),
+                SUBSTRING(MD5(RAND()),1, FLOOR(10 + RAND()*40)),
+                SUBSTRING(MD5(RAND()),1,12),
+                SUBSTRING(MD5(RAND()),1,10),
+                FLOOR(50 + RAND()*950),
+                FLOOR(1900 + RAND()*(2023-1900)),
+                SUBSTRING(MD5(RAND()),1,10),
+                'ES',
+                'PDF',
+                SUBSTRING(MD5(RAND()),1,100),
+                SUBSTRING(MD5(RAND()),1,500)
+            FROM numbers;
         `);
         metricas.insertar_3500_libros = Date.now() - start;
-
-        // Generar 100 CSVs
+        
         start = Date.now();
         for (let i = 0; i < NUM_CSVS; i++) {
             fs.writeFileSync(path.join(TMP_DIR, `libros_${i}.csv`), 
@@ -239,7 +247,6 @@ async function main() {
         }
         metricas.generar_100csvs = Date.now() - start;
 
-        // Insertar 100 CSVs
         start = Date.now();
         for (let i = 0; i < NUM_CSVS; i++) {
             await executeMySQLCommand(`
@@ -281,18 +288,72 @@ async function main() {
 
         // Exportar a CSV
         start = Date.now();
-        await executeMySQLCommand(`
-            USE ${DB_NAME};
-            SELECT * FROM Libro INTO OUTFILE '${path.join(TMP_DIR, 'libros_export.csv')}';
-            SELECT * FROM Autor INTO OUTFILE '${path.join(TMP_DIR, 'autores_export.csv')}';
-        `);
+        console.log('Exportando a CSV...');
+        
+        // Primero obtenemos los datos y luego los escribimos a archivos
+        const librosExportPath = path.join(TMP_DIR, 'libros_export.csv');
+        const autoresExportPath = path.join(TMP_DIR, 'autores_export.csv');
+        
+        // Ejecutar queries para obtener los datos
+        const librosProcess = new Process("C:\\MySQL\\bin\\mysql");
+        librosProcess.ProcessArguments.push("-uroot");
+        librosProcess.ProcessArguments.push("--password=utt");
+        librosProcess.ProcessArguments.push(DB_NAME);
+        librosProcess.ProcessArguments.push("-e");
+        librosProcess.ProcessArguments.push("SELECT * FROM Libro");
+        librosProcess.ProcessArguments.push("--batch");  // Formato de salida sin decoración
+        await librosProcess.ExecuteAsync(true);
+        fs.writeFileSync(librosExportPath, librosProcess.Logs);
+        
+        const autoresProcess = new Process("C:\\MySQL\\bin\\mysql");
+        autoresProcess.ProcessArguments.push("-uroot");
+        autoresProcess.ProcessArguments.push("--password=utt");
+        autoresProcess.ProcessArguments.push(DB_NAME);
+        autoresProcess.ProcessArguments.push("-e");
+        autoresProcess.ProcessArguments.push("SELECT * FROM Autor");
+        autoresProcess.ProcessArguments.push("--batch");  // Formato de salida sin decoración
+        await autoresProcess.ExecuteAsync(true);
+        fs.writeFileSync(autoresExportPath, autoresProcess.Logs);
+        
+        console.log(`Archivos CSV creados: 
+          - ${librosExportPath}
+          - ${autoresExportPath}`);
+        
         metricas.exportar_csv = Date.now() - start;
 
         // MongoDB Backup completo
         start = Date.now();
         console.log('Iniciando respaldo a MongoDB...');
-        await executeMongoCommand(path.join(TMP_DIR, 'libros_export.csv'), 'libros');
-        await executeMongoCommand(path.join(TMP_DIR, 'autores_export.csv'), 'autores');
+        
+        // Preparamos los archivos CSV correctamente para MongoDB
+        const librosMongoCSV = path.join(TMP_DIR, 'libros_mongo.csv');
+        const autoresMongoCSV = path.join(TMP_DIR, 'autores_mongo.csv');
+        
+        // Obtener datos limpios para MongoDB
+        const librosMongoProcess = new Process("C:\\MySQL\\bin\\mysql");
+        librosMongoProcess.ProcessArguments.push("-uroot");
+        librosMongoProcess.ProcessArguments.push("--password=utt");
+        librosMongoProcess.ProcessArguments.push(DB_NAME);
+        librosMongoProcess.ProcessArguments.push("-e");
+        librosMongoProcess.ProcessArguments.push("SELECT * FROM Libro");
+        librosMongoProcess.ProcessArguments.push("--csv");  // Formato CSV
+        await librosMongoProcess.ExecuteAsync(true);
+        fs.writeFileSync(librosMongoCSV, librosMongoProcess.Logs);
+        
+        const autoresMongoProcess = new Process("C:\\MySQL\\bin\\mysql");
+        autoresMongoProcess.ProcessArguments.push("-uroot");
+        autoresMongoProcess.ProcessArguments.push("--password=utt");
+        autoresMongoProcess.ProcessArguments.push(DB_NAME);
+        autoresMongoProcess.ProcessArguments.push("-e");
+        autoresMongoProcess.ProcessArguments.push("SELECT * FROM Autor");
+        autoresMongoProcess.ProcessArguments.push("--csv");  // Formato CSV
+        await autoresMongoProcess.ExecuteAsync(true);
+        fs.writeFileSync(autoresMongoCSV, autoresMongoProcess.Logs);
+        
+        console.log('Archivos CSV preparados para MongoDB');
+        await executeMongoCommand(librosMongoCSV, 'libros');
+        await executeMongoCommand(autoresMongoCSV, 'autores');
+        console.log('Importación a MongoDB completada');
         
         // Eliminar tablas de MySQL
         console.log('Eliminando tablas de MySQL...');
@@ -307,10 +368,18 @@ async function main() {
         const mongoLibrosExport = path.join(TMP_DIR, 'mongo_libros_export.csv');
         const mongoAutoresExport = path.join(TMP_DIR, 'mongo_autores_export.csv');
         
-        await executeMongoExport('libros', '*', mongoLibrosExport);
-        await executeMongoExport('autores', '*', mongoAutoresExport);
+        console.log('Exportando desde MongoDB...');
+        await executeMongoExport('libros', 'id,ISBN,title,autor_license,editorial,pages,year,genre,language,format,sinopsis,content', mongoLibrosExport);
+        await executeMongoExport('autores', 'id,license,name,lastName,secondLastName,year', mongoAutoresExport);
+        console.log('Exportación completada');
+        
+        // Verificar si se crearon los archivos
+        console.log(`Verificando archivos exportados:
+          - ${fs.existsSync(mongoLibrosExport) ? 'Libros: OK' : 'Libros: NO EXISTE'}
+          - ${fs.existsSync(mongoAutoresExport) ? 'Autores: OK' : 'Autores: NO EXISTE'}`);
         
         // Recrear tablas y restaurar datos
+        console.log('Recreando tablas y restaurando datos...');
         await executeMySQLCommand(`
             USE ${DB_NAME};
             CREATE TABLE IF NOT EXISTS Autor (
@@ -335,24 +404,45 @@ async function main() {
                 sinopsis TEXT,
                 content TEXT
             );
-            
-            LOAD DATA LOCAL INFILE '${mongoLibrosExport}'
-            INTO TABLE Libro
-            FIELDS TERMINATED BY ','
-            LINES TERMINATED BY '\n'
-            IGNORE 1 LINES;
-            
-            LOAD DATA LOCAL INFILE '${mongoAutoresExport}'
-            INTO TABLE Autor
-            FIELDS TERMINATED BY ','
-            LINES TERMINATED BY '\n'
-            IGNORE 1 LINES;
         `);
+        
+        // Cargar datos desde archivos CSV
+        if (fs.existsSync(mongoLibrosExport)) {
+            await executeMySQLCommand(`
+                USE ${DB_NAME};
+                SET GLOBAL local_infile=1;
+                LOAD DATA LOCAL INFILE '${mongoLibrosExport.replace(/\\/g, '/')}'
+                INTO TABLE Libro
+                FIELDS TERMINATED BY ','
+                LINES TERMINATED BY '\\n'
+                IGNORE 1 LINES;
+            `);
+            console.log('Datos de libros restaurados');
+        } else {
+            console.log('Error: Archivo de libros no encontrado');
+        }
+        
+        if (fs.existsSync(mongoAutoresExport)) {
+            await executeMySQLCommand(`
+                USE ${DB_NAME};
+                SET GLOBAL local_infile=1;
+                LOAD DATA LOCAL INFILE '${mongoAutoresExport.replace(/\\/g, '/')}'
+                INTO TABLE Autor
+                FIELDS TERMINATED BY ','
+                LINES TERMINATED BY '\\n'
+                IGNORE 1 LINES;
+            `);
+            console.log('Datos de autores restaurados');
+        } else {
+            console.log('Error: Archivo de autores no encontrado');
+        }
+
         metricas.mongodb_backup = Date.now() - start;
 
         // MySQL Dump
         start = Date.now();
-        const dumpProcess = new Process("mysqldump");
+        console.log('Generando dump de MySQL...');
+        const dumpProcess = new Process("C:\\MySQL\\bin\\mysqldump");
         dumpProcess.ProcessArguments.push(...[
             "-uroot",
             "--password=utt",
@@ -361,10 +451,12 @@ async function main() {
         ]);
         await dumpProcess.ExecuteAsync(true);
         metricas.mysqldump = dumpProcess.EndTime - dumpProcess.StartTime;
+        console.log('Dump generado correctamente');
 
         // Restaurar backup
         start = Date.now();
-        const restoreProcess = new Process("mysql");
+        console.log('Restaurando desde backup...');
+        const restoreProcess = new Process("C:\\MySQL\\bin\\mysql");
         restoreProcess.ProcessArguments.push(...[
             "-uroot",
             "--password=utt",
@@ -374,6 +466,7 @@ async function main() {
         restoreProcess.ProcessArguments.push(`< "${path.join(TMP_DIR, 'backup.sql')}"`);
         await restoreProcess.ExecuteAsync(true);
         metricas.import_dump = restoreProcess.EndTime - restoreProcess.StartTime;
+        console.log('Restauración completada');
 
         // Prueba de error al insertar con usuario no autorizado
         start = Date.now();
@@ -384,7 +477,7 @@ async function main() {
                 FLUSH PRIVILEGES;
             `);
             
-            const processAutor = new Process("mysql");
+            const processAutor = new Process("C:\\MySQL\\bin\\mysql");
             processAutor.ProcessArguments.push("-uC");
             processAutor.ProcessArguments.push("--password=passwordC");
             processAutor.Execute();
@@ -403,7 +496,7 @@ async function main() {
         start = Date.now();
         console.log('Probando inserción no autorizada de libro...');
         try {
-            const processLibro = new Process("mysql");
+            const processLibro = new Process("C:\\MySQL\\bin\\mysql");
             processLibro.ProcessArguments.push("-uC");
             processLibro.ProcessArguments.push("--password=passwordC");
             processLibro.Execute();
