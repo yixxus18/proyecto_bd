@@ -10,27 +10,165 @@
 </head>
 <body>
     
-        <main class='container mt-5'>
-            <h1 class='mb-4'>Reporte de Rendimiento</h1>
-            <canvas id="grafico"></canvas>
+            <div class="container mt-5">
+                <h1>Reporte de Rendimiento de Biblioteca</h1>
+                <p class="lead">Métricas de rendimiento para operaciones de base de datos</p>
+                <div class="row">
+                    <div class="col-12">
+                        <canvas id="chart" height="400"></canvas>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Resumen de métricas</h3>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Operación</th>
+                                    <th>Tiempo (ms)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                        <td>crear_estructura</td>
+                                        <td>466</td>
+                                    </tr><tr>
+                                        <td>crear_usuarios</td>
+                                        <td>156</td>
+                                    </tr><tr>
+                                        <td>generar_150k_autores</td>
+                                        <td>1549</td>
+                                    </tr><tr>
+                                        <td>insertar_150k_autores</td>
+                                        <td>5391</td>
+                                    </tr><tr>
+                                        <td>generar_100k_libros</td>
+                                        <td>6297</td>
+                                    </tr><tr>
+                                        <td>insertar_100k_libros</td>
+                                        <td>7315</td>
+                                    </tr><tr>
+                                        <td>insertar_3500_libros</td>
+                                        <td>356</td>
+                                    </tr><tr>
+                                        <td>generar_100csvs</td>
+                                        <td>6068</td>
+                                    </tr><tr>
+                                        <td>insertar_100csvs</td>
+                                        <td>15631</td>
+                                    </tr><tr>
+                                        <td>query_estadisticas</td>
+                                        <td>725</td>
+                                    </tr><tr>
+                                        <td>exportar_csv</td>
+                                        <td>9299</td>
+                                    </tr><tr>
+                                        <td>mongodb_backup</td>
+                                        <td>14252</td>
+                                    </tr><tr>
+                                        <td>mysqldump</td>
+                                        <td>147</td>
+                                    </tr><tr>
+                                        <td>import_dump</td>
+                                        <td>392</td>
+                                    </tr><tr>
+                                        <td>error_insert_autor</td>
+                                        <td>73</td>
+                                    </tr><tr>
+                                        <td>error_insert_libro</td>
+                                        <td>80</td>
+                                    </tr><tr>
+                                        <td>mongo_export</td>
+                                        <td>184731</td>
+                                    </tr><tr>
+                                        <td>old_books_import</td>
+                                        <td>63942</td>
+                                    </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
             <script>
-                new Chart(document.getElementById('grafico'), {
+                const ctx = document.getElementById('chart').getContext('2d');
+                new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: ["crear_estructura","crear_usuarios","generar_100k_libros","insertar_100k_libros","insertar_3500_libros","generar_100csvs","insertar_100csvs","query_estadisticas","generar_150k_autores","insertar_150k_autores","exportar_csv","mongodb_backup","mysqldump","import_dump","error_insert_autor","error_insert_libro","mongo_export","old_books_import"],
+                        labels: ["crear_estructura","crear_usuarios","generar_150k_autores","insertar_150k_autores","generar_100k_libros","insertar_100k_libros","insertar_3500_libros","generar_100csvs","insertar_100csvs","query_estadisticas","exportar_csv","mongodb_backup","mysqldump","import_dump","error_insert_autor","error_insert_libro","mongo_export","old_books_import"],
                         datasets: [{
-                            label: 'Tiempo (ms)',
-                            data: [248,123,2573,112,327,2530,11383,123,523,120,110,822,128,164,239,124,79576,229],
-                            backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                            label: 'Tiempo de ejecución (ms)',
+                            data: [466,156,1549,5391,6297,7315,356,6068,15631,725,9299,14252,147,392,73,80,184731,63942],
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.7)',
+                                'rgba(255, 99, 132, 0.7)',
+                                'rgba(255, 206, 86, 0.7)',
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(153, 102, 255, 0.7)',
+                                'rgba(255, 159, 64, 0.7)',
+                                'rgba(199, 199, 199, 0.7)',
+                                'rgba(83, 102, 255, 0.7)',
+                                'rgba(40, 159, 64, 0.7)',
+                                'rgba(210, 199, 199, 0.7)',
+                                'rgba(78, 250, 137, 0.7)',
+                                'rgba(23, 45, 232, 0.7)',
+                                'rgba(45, 132, 45, 0.7)',
+                                'rgba(255, 182, 193, 0.7)',
+                                'rgba(170, 120, 250, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgb(54, 162, 235)',
+                                'rgb(255, 99, 132)',
+                                'rgb(255, 206, 86)',
+                                'rgb(75, 192, 192)',
+                                'rgb(153, 102, 255)',
+                                'rgb(255, 159, 64)',
+                                'rgb(199, 199, 199)',
+                                'rgb(83, 102, 255)',
+                                'rgb(40, 159, 64)',
+                                'rgb(210, 199, 199)',
+                                'rgb(78, 250, 137)',
+                                'rgb(23, 45, 232)',
+                                'rgb(45, 132, 45)',
+                                'rgb(255, 182, 193)',
+                                'rgb(170, 120, 250)'
+                            ],
+                            borderWidth: 1
                         }]
                     },
                     options: {
                         responsive: true,
-                        scales: { y: { beginAtZero: true } }
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Rendimiento de operaciones en base de datos'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Tiempo (ms)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Operaciones'
+                                },
+                                ticks: {
+                                    autoSkip: false,
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            }
+                        }
                     }
                 });
             </script>
-        </main>
         
 </body>
 </html>

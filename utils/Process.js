@@ -58,7 +58,6 @@ class Process {
         return new Promise((resolve, reject) => {
             this.process = spawn(this.executable, this.process_arguments, {
                 ...this.options,
-                shell: true // <-- Esto es crítico
             });
             if(forceTimer) {
                 this.start_time = Date.now();
